@@ -1,0 +1,112 @@
+services:
+  consul:
+    image: consul:1.10.12
+    container_name: consul
+    ports:
+      - "8500:8500"
+    networks:
+      - mynetwork
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+
+  api-gateway:
+    image: vigneshactech2015/api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+
+  auth-service:
+    image: vigneshactech2015/auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+  cart-service:
+    image: vigneshactech2015/cart-service
+    container_name: cart-service
+    ports:
+      - "3003:3003"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+  notification-service:
+    image: vigneshactech2015/notification-service
+    container_name: notification-service
+    ports:
+      - "3005:3005"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+  order-service:
+    image: vigneshactech2015/order-service
+    container_name: order-service
+    ports:
+      - "3004:3004"
+    networks:
+      - mynetwork
+    depends_on:
+      - rabbitmq
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+  product-service:
+    image: vigneshactech2015/product-service
+    # No container name , No ports because of scaling rules
+    # Docker assigns a random port on the host, but the container still listens on 3002 internally.
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+  inventory-service:
+    image: vigneshactech2015/inventory-service
+    container_name: inventory-service
+    ports:
+      - "3006:3006"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - mynetwork
+    depends_on:
+      - consul
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+
+networks:
+  mynetwork:
+    driver: bridge
