@@ -29,4 +29,9 @@ eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name 
 2) kubectl apply -f deployment.yml
 3) kubectl port-forward service/frontend 8080:80 -n frontend
 
+Command to restart the deployment 
+
+i- kubectl rollout restart deployment frontend -n frontend
+
+
 open localhost:8080
