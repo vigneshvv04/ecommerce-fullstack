@@ -20,7 +20,7 @@ app.get('/health', (req, res) => res.send('OK'));
 app.use('/cart',cartRoutes)
 
 
-const PORT = 3003;
+const PORT = 3002;
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`${serviceName} running on port ${PORT}`);
 });

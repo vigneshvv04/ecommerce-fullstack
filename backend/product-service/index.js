@@ -282,7 +282,7 @@ app.get('/products/:id', (req, res) => {
   res.status(404).json({ message: 'Product not found' });
 })
 
-const PORT = 3002;
+const PORT = 3007;
 app.listen(PORT, () => {
   console.log(`${serviceName} running on port ${PORT}`);
 
