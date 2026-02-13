@@ -39,7 +39,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 5173
+          containerPort: 80
           protocol: TCP
         resources:
           requests:
@@ -86,7 +86,7 @@ spec:
   - name: http
     protocol: TCP
     port: 80
-    targetPort: 5173
+    targetPort: 80
     nodePort: 31234  # Access via http://<NODE_IP>:31234
 
 ---
