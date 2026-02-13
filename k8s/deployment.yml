@@ -1,0 +1,660 @@
+# ===================================================================
+# ECOMMERCE APPLICATION - KUBERNETES DEPLOYMENT MANIFEST
+# ===================================================================
+# This manifest deploys the complete e-commerce application to Kubernetes
+# using Docker images built and pushed by GitHub Actions CI pipeline
+#
+# ===================================================================
+
+---
+# FRONTEND DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: frontend
+  labels:
+    app: frontend
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+    spec:
+      containers:
+      - name: frontend
+        image: vigneshvijayakumarnagarro/ecommerce-frontend:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        env:
+        - name: VITE_API_URL
+          value: "http://api-gateway:3000"
+
+---
+# FRONTEND SERVICE (NodePort for external access)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: frontend
+  labels:
+    app: frontend
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 31234  # Access via http://<NODE_IP>:31234
+
+---
+# FRONTEND HORIZONTAL POD AUTOSCALER
+# ===================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  namespace: frontend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# ===================================================================
+# BACKEND SERVICES DEPLOYMENTS
+# ===================================================================
+
+---
+# API GATEWAY DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: backend
+  labels:
+    app: api-gateway
+    service: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        service: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: vigneshvijayakumarnagarro/ecommerce-api-gateway:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+
+---
+# API GATEWAY SERVICE (ClusterIP - internal only)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: backend
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+
+---
+# AUTH SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: backend
+  labels:
+    app: auth-service
+    service: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        service: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: vigneshvijayakumarnagarro/ecommerce-auth-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3001
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+
+---
+# AUTH SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: backend
+  labels:
+    app: auth-service
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3001
+    targetPort: 3001
+
+---
+# CART SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: backend
+  labels:
+    app: cart-service
+    service: cart-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+        service: cart-service
+    spec:
+      containers:
+      - name: cart-service
+        image: vigneshvijayakumarnagarro/ecommerce-cart-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3002
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3002"
+
+---
+# CART SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: backend
+  labels:
+    app: cart-service
+spec:
+  type: ClusterIP
+  selector:
+    app: cart-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3002
+    targetPort: 3002
+
+---
+# INVENTORY SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: backend
+  labels:
+    app: inventory-service
+    service: inventory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+        service: inventory-service
+    spec:
+      containers:
+      - name: inventory-service
+        image: vigneshvijayakumarnagarro/ecommerce-inventory-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3003
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3003"
+
+---
+# INVENTORY SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: backend
+  labels:
+    app: inventory-service
+spec:
+  type: ClusterIP
+  selector:
+    app: inventory-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3003
+    targetPort: 3003
+
+---
+# NOTIFICATION SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: backend
+  labels:
+    app: notification-service
+    service: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        service: notification-service
+    spec:
+      containers:
+      - name: notification-service
+        image: vigneshvijayakumarnagarro/ecommerce-notification-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3004
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3004"
+
+---
+# NOTIFICATION SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: backend
+  labels:
+    app: notification-service
+spec:
+  type: ClusterIP
+  selector:
+    app: notification-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3004
+    targetPort: 3004
+
+---
+# ORDER SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: backend
+  labels:
+    app: order-service
+    service: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        service: order-service
+    spec:
+      containers:
+      - name: order-service
+        image: vigneshvijayakumarnagarro/ecommerce-order-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3005
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3005"
+
+---
+# ORDER SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: backend
+  labels:
+    app: order-service
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3005
+    targetPort: 3005
+
+---
+# PRODUCT SERVICE DEPLOYMENT
+# ===================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: backend
+  labels:
+    app: product-service
+    service: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+        service: product-service
+    spec:
+      containers:
+      - name: product-service
+        image: vigneshvijayakumarnagarro/ecommerce-product-service:main
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3006
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3006"
+
+---
+# PRODUCT SERVICE (ClusterIP)
+# ===================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: backend
+  labels:
+    app: product-service
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 3006
+    targetPort: 3006
+
+---
+# NAMESPACE DEFINITIONS
+# ===================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    name: frontend
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend
+  labels:
+    name: backend
