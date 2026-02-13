@@ -22,3 +22,8 @@ sudo sh eksctl.sh
 
 eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name my-nodegroup --node-type t2.small --nodes 3 --nodes-min 1 --nodes-max 5 --managed
 
+------------- To test this locally using minikube --------------------
+
+
+1) minikube start
+2) kubectl apply -f deployment.yml
