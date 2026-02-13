@@ -23,7 +23,7 @@ const SERVICES = {
   'inventory-service': 'http://inventory-service:3003',
   'notification-service': 'http://notification-service:3004',
   'order-service': 'http://order-service:3005',
-  'product-service': 'http://product-service:3006'
+  'product-service': 'http://product-service:3007'
 };
 
 app.all('/api/:service/*', async (req, res) => {

@@ -493,7 +493,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 3006
+          containerPort: 3007
         resources:
           requests:
             cpu: 50m
@@ -519,8 +519,8 @@ spec:
   ports:
   - name: http
     protocol: TCP
-    port: 3006
-    targetPort: 3006
+    port: 3007
+    targetPort: 3007
 
 ---
 # NAMESPACE DEFINITIONS
