@@ -1,8 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const consul = require('consul')({ host: 'consul' });
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 
@@ -72,23 +70,10 @@ app.post('/inventory/check', (req, res) => {
 });
 
 const PORT = 3006;
-const SERVICE_ID = `inventory-service-${uuidv4()}`;
 
 app.listen(PORT, () => {
   console.log(`Inventory Service running on port ${PORT}`);
 
-  // Register with Consul
-  consul.agent.service.register({
-    id: SERVICE_ID,
-    name: 'inventory-service',
-    address: 'inventory-service',
-    port: PORT,
-    check: {
-      http: `http://inventory-service:${PORT}/health`,
-      interval: '10s',
-      timeout: '5s'
-    }
-  }, () => console.log('Inventory Service registered with Consul'));
 });
 
 // Health check endpoint

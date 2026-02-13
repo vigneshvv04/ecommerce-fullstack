@@ -1,5 +1,4 @@
 const express = require('express');
-const consul = require('consul')({ host: 'consul' });
 const cors = require('cors');
 const app = express();
 
@@ -287,19 +286,6 @@ const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`${serviceName} running on port ${PORT}`);
 
-  // Register service with Consul
-  consul.agent.service.register({
-    id: serviceId,
-    name: serviceName,
-    address: serviceName,
-    port: PORT,
-    check: {
-      http: `http://${serviceName}:${PORT}/health`,
-      interval: '10s'
-    }
-  }, err => {
-    if (err) console.error('Error registering service:', err);
-  });
 });
 
 

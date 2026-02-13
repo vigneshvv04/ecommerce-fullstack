@@ -1,12 +1,10 @@
 const express = require('express');
-const consul = require('consul')({ host: 'consul' });
 const cors = require('cors');
 const os = require('os');
 const { connectRabbitMQ } = require('./rabbitmq');
 
 const app = express();
 const serviceName = 'notification-service';
-const serviceId = `${serviceName}-${os.hostname()}`;
 const PORT = 3005;
 
 // Configure CORS
@@ -45,25 +43,7 @@ const start = async () => {
     // Start Express server
     app.listen(PORT, () => {
       console.log(`${serviceName} running on port ${PORT}`);
-
-      // Register with Consul
-      consul.agent.service.register({
-        id: serviceId,
-        name: serviceName,
-        address: serviceName, // Container hostname
-        port: PORT,
-        check: {
-          http: `http://${serviceName}:${PORT}/health`,
-          interval: '10s',
-          timeout: '5s'
-        }
-      }, (err) => {
-        if (err) {
-          console.error('❌ Error registering service with Consul:', err);
-        } else {
-          console.log(`✅ ${serviceName} registered with Consul`);
-        }
-      });
+     
     });
 
   } catch (err) {

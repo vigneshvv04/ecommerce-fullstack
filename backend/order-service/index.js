@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-const consul = require('consul')({ host: 'consul' });
 const cors = require('cors');
 const CircuitBreaker = require('opossum');
 
@@ -122,23 +121,6 @@ app.post('/order/place', async (req, res) => {
     app.listen(PORT, () => {
       console.log(`✅ Order Service running on port ${PORT}`);
 
-      consul.agent.service.register({
-        id: serviceId,
-        name: serviceName,
-        address: serviceName,
-        port: PORT,
-        check: {
-          http: `http://${serviceName}:${PORT}/health`,
-          interval: '10s',
-          timeout: '5s'
-        }
-      }, (err) => {
-        if (err) {
-          console.error('❌ Error registering with Consul:', err);
-        } else {
-          console.log(`📌 Registered ${serviceName} with Consul`);
-        }
-      });
     });
 
   } catch (err) {
