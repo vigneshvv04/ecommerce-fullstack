@@ -159,23 +159,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3000"
 
 ---
 # API GATEWAY SERVICE (ClusterIP - internal only)
@@ -233,23 +216,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3001"
 
 ---
 # AUTH SERVICE (ClusterIP)
@@ -307,23 +273,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3002"
 
 ---
 # CART SERVICE (ClusterIP)
@@ -381,23 +330,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3003"
 
 ---
 # INVENTORY SERVICE (ClusterIP)
@@ -455,23 +387,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3004"
 
 ---
 # NOTIFICATION SERVICE (ClusterIP)
@@ -529,23 +444,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3005"
 
 ---
 # ORDER SERVICE (ClusterIP)
@@ -603,23 +501,6 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3006"
 
 ---
 # PRODUCT SERVICE (ClusterIP)
