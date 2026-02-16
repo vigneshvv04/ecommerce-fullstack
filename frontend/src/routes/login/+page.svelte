@@ -72,7 +72,7 @@
 
 <section>
 	<div class="login-container">
-		<h1>Vignesh Store</h1>
+		<h1>Vignesh Vijayakumar Store</h1>
 		
 		<form on:submit={handleSubmit} class="login-form">
 			<div class="form-group">
